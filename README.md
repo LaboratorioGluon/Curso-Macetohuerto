@@ -4,7 +4,9 @@
 > Este es el repositorio donde vamos guardando el código que realizamos para el curso en directo que estamos haciendo en mi [Canel de Twitch](https://www.twitch.tv/labgluon) y [Canal de Youtube](https://www.youtube.com/laboratoriogluon). 
 
 
-Estamos haciendo un MacetoHuerto! Un pequeño dispositivo para controlar el riego y el estado de las plantas que podemos tener en un piso, de ahí el "maceto" 😁. En este curso vamos a aprender a:
+Estamos haciendo un MacetoHuerto! Un pequeño dispositivo para controlar el riego y el estado de las plantas que podemos tener en un piso, de ahí el "maceto" 😁. El plan es hacer que el macetohuerto mida: la humedad del suelo, la temperatura, presión y humedad del ambiente; La cantidad de luz que llega a la planta y envíe (MQTT) estos datos a un servidor donde se almacenará (InfluxDB) y se podrán analizar (Grafana). Por otro lado, queremos que todo el dispositivo esté alimentado por paneles solares, y él mismo gestione la batería.
+
+Por lo tanto, en este curso vamos a aprender a:
 
 - :hammer_and_pick: Hardware:
     - **BME280**: Implementar el interfaz para la librería de Bosch.
