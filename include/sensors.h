@@ -1,8 +1,22 @@
 #ifndef SENSORS_C__
 #define SENSORS_C__
 
-void sensors_init(void);
+#include <driver/i2c_master.h>
 
-void sensors_update(void);
+typedef struct {
+  i2c_master_dev_handle_t bmeDev;
+} SensorConfig;
+
+typedef struct {
+  struct {
+    float pressure;
+    float humidty;
+    float airTemp;
+  } bme;
+} SensorData;
+
+void sensors_init(SensorConfig* config);
+
+void sensors_update(SensorData* data);
 
 #endif  //SENSORS_C__
