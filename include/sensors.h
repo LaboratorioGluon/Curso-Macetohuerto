@@ -3,10 +3,16 @@
 
 #include <driver/i2c_master.h>
 
+/**
+ * @brief Configuration required to initialize the sensors.
+ */
 typedef struct {
   i2c_master_dev_handle_t bmeDev;
 } SensorConfig;
 
+/**
+ * @brief Stores the read data from the sensors.
+ */
 typedef struct {
   struct {
     float pressure;
@@ -15,8 +21,16 @@ typedef struct {
   } bme;
 } SensorData;
 
+/**
+ * @brief Initialize the board sensors using the configuration.
+ * @param config Required configuration by the sensor module.
+ */
 void sensors_init(SensorConfig* config);
 
+/**
+ * @brief Read the sensors and update the 'data' parameter.
+ * @param data Pointer where to store the data.
+ */
 void sensors_update(SensorData* data);
 
 #endif  //SENSORS_C__
