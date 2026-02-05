@@ -13,6 +13,7 @@ void app_main() {
 
   SensorConfig sensorsconfig;
   sensorsconfig.bmeDev = sysDevs->bme;
+  sensorsconfig.adsDev = sysDevs->ads;
   sensors_init(&sensorsconfig);
 
   SensorData data;
@@ -21,7 +22,8 @@ void app_main() {
     printf("Pre sensor_update\n");
     sensors_update(&data);
 
-    printf("Read data: %.2f, %.2f, %.2f", data.bme.pressure, data.bme.humidty, data.bme.airTemp);
+    //printf("Read data: %.2f, %.2f, %.2f", data.bme.pressure, data.bme.humidty, data.bme.airTemp);
+    printf("ADC: %d\n", data.adcValue);
     //..
 
     comms_send();

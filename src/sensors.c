@@ -2,13 +2,16 @@
 #include <esp_log.h>
 #include <freertos/FreeRTOS.h>
 #include "IBme280.h"
+#include "ads1115.h"
 #include "bme280.h"
+#include "hal/ads1115_hals.h"
 
 /*********************/
 /* Private Variables */
 
 static struct {
   struct bme280_dev bmedev;
+  Ads1115 ads;
 } sensors;
 
 static char* TAG = "SENSORS";
@@ -19,8 +22,8 @@ static char* TAG = "SENSORS";
 void sensors_init(SensorConfig* config) {
 
   // Prepare 'bmedev' device.
-  sensors.bmedev.read = ibme280_i2c_read;
-  sensors.bmedev.write = ibme280_i2c_write;
+  sensors.bmedev.read     = ibme280_i2c_read;
+  sensors.bmedev.write    = ibme280_i2c_write;
   sensors.bmedev.delay_us = ibme280_delay;
 
   // The interface implemented for the BME280 (IBme280.h/c)
@@ -56,6 +59,17 @@ void sensors_init(SensorConfig* config) {
 
   // Start the measurements.
   bme280_set_sensor_mode(BME280_POWERMODE_NORMAL, &sensors.bmedev);
+
+  ads1115_esp32Create(&sensors.ads, &config->adsDev);
+
+  Ads1115Config adsConf = {
+      .mode = ADS1115_MODE_CONTINUOUS,
+      .fsr  = ADS1115_FSR_1_024V,
+      .dr   = ADS1115_DR_128SPS,
+      .mux  = ADS1115_MUX_AIN0_GND,
+  };
+
+  ads1115_config(&sensors.ads, &adsConf);
 }
 
 void sensors_update(SensorData* data) {
@@ -63,6 +77,8 @@ void sensors_update(SensorData* data) {
   bme280_get_sensor_data(BME280_ALL, &bmedata, &sensors.bmedev);
 
   data->bme.pressure = bmedata.pressure;
-  data->bme.humidty = bmedata.humidity;
-  data->bme.airTemp = bmedata.temperature;
+  data->bme.humidty  = bmedata.humidity;
+  data->bme.airTemp  = bmedata.temperature;
+
+  data->adcValue = ads1115_readRaw(&sensors.ads);
 }

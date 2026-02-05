@@ -9,6 +9,7 @@
  */
 typedef struct {
   i2c_master_dev_handle_t bme;
+  i2c_master_dev_handle_t ads;
 } SystemDevs;
 
 /**
