@@ -64,7 +64,7 @@ void sensors_init(SensorConfig* config) {
 
   Ads1115Config adsConf = {
       .mode = ADS1115_MODE_CONTINUOUS,
-      .fsr  = ADS1115_FSR_1_024V,
+      .fsr  = ADS1115_FSR_4_096V,
       .dr   = ADS1115_DR_128SPS,
       .mux  = ADS1115_MUX_AIN0_GND,
   };
@@ -80,5 +80,6 @@ void sensors_update(SensorData* data) {
   data->bme.humidty  = bmedata.humidity;
   data->bme.airTemp  = bmedata.temperature;
 
-  data->adcValue = ads1115_readRaw(&sensors.ads);
+  //data->adcValueMv = ads1115_readRaw(&sensors.ads) * 125.0f / 1000.0f;
+  data->adcValueV = ads11115_readVolts(&sensors.ads);
 }

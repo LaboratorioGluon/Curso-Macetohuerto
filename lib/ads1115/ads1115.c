@@ -7,6 +7,15 @@
 
 #include <esp_log.h>
 
+#define ADS_BITS 15
+
+static const float fsrToVScale[] = {[ADS1115_FSR_6_144V] = 6.144f / (1 << ADS_BITS),
+                                    [ADS1115_FSR_4_096V] = 4.096f / (1 << ADS_BITS),
+                                    [ADS1115_FSR_2_048V] = 2.048f / (1 << ADS_BITS),
+                                    [ADS1115_FSR_1_024V] = 1.024f / (1 << ADS_BITS),
+                                    [ADS1115_FSR_0_512V] = 0.512f / (1 << ADS_BITS),
+                                    [ADS1115_FSR_0_256V] = 0.256f / (1 << ADS_BITS)};
+
 static uint8_t halBuffer[10] = {0};
 
 static int32_t writeReg(Ads1115* ads, uint8_t reg, uint16_t data) {
@@ -52,12 +61,21 @@ int32_t ads1115_config(Ads1115* ads, Ads1115Config* config) {
     ESP_LOGE("ADS", "Config set to: %x", regConfig);
     //write_register(ADS1115_REG_CFG, regConfig);
     ret = writeReg(ads, ADS1115_REG_CFG, regConfig);
+
+    if (ret == 0) {
+      ads->currentFsr = config->fsr;
+    }
   }
   return ret;
 }
 
-uint16_t ads1115_readRaw(Ads1115* ads) {
-  uint16_t ret;
+int16_t ads1115_readRaw(Ads1115* ads) {
+  int16_t ret;
   readReg(ads, ADS1115_REG_CONV, (uint8_t*)&ret);
-  return (ret << 8) | ((ret >> 8) % 0xFF);
+  ESP_LOGE("ADS", "ADC Hex: %08x", ret);
+  return ((ret & 0xFF) << 8) | ((ret >> 8) & 0xFF);
+}
+
+float ads11115_readVolts(Ads1115* ads) {
+  return ads1115_readRaw(ads) * fsrToVScale[ads->currentFsr];
 }

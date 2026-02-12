@@ -20,7 +20,7 @@ typedef struct {
     float humidty;
     float airTemp;
   } bme;
-  uint16_t adcValue;
+  float adcValueV;
 } SensorData;
 
 /**
