@@ -23,7 +23,7 @@ void app_main() {
     sensors_update(&data);
 
     //printf("Read data: %.2f, %.2f, %.2f", data.bme.pressure, data.bme.humidty, data.bme.airTemp);
-    printf("ADC: %.4f\n", data.adcValueV);
+    printf("ADC: %2.4f | %2.4f\n", data.adcLdr, data.adcHumidity);
     //..
 
     comms_send();

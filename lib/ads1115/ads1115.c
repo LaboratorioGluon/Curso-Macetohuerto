@@ -69,13 +69,30 @@ int32_t ads1115_config(Ads1115* ads, Ads1115Config* config) {
   return ret;
 }
 
+int32_t ads1115_setMux(Ads1115* ads, Ads1115Mux mux) {
+  int32_t ret = 0;
+
+  if (ads == NULL) {
+    ret = EINVAL;
+  } else {
+    uint16_t config;
+    ret = readReg(ads, ADS1115_REG_CFG, (uint8_t*)&config);
+
+    if (ret == 0) {
+      config &= ~(ADS1115_CFG_MUX_MASK);
+      config |= ((mux << ADS1115_CFG_MUX_OFFSET) & ADS1115_CFG_MUX_MASK);
+      ret = writeReg(ads, ADS1115_REG_CFG, config);
+    }
+  }
+  return ret;
+}
+
 int16_t ads1115_readRaw(Ads1115* ads) {
   int16_t ret;
   readReg(ads, ADS1115_REG_CONV, (uint8_t*)&ret);
-  ESP_LOGE("ADS", "ADC Hex: %08x", ret);
   return ((ret & 0xFF) << 8) | ((ret >> 8) & 0xFF);
 }
 
-float ads11115_readVolts(Ads1115* ads) {
+float ads1115_readVolts(Ads1115* ads) {
   return ads1115_readRaw(ads) * fsrToVScale[ads->currentFsr];
 }

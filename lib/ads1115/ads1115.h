@@ -70,7 +70,9 @@ typedef struct {
 int32_t ads1115_init(Ads1115* ads);
 int32_t ads1115_config(Ads1115* ads, Ads1115Config* config);
 
+int32_t ads1115_setMux(Ads1115* ads, Ads1115Mux mux);
+
 int16_t ads1115_readRaw(Ads1115* ads);
-float ads11115_readVolts(Ads1115* ads);
+float ads1115_readVolts(Ads1115* ads);
 
 #endif  //ADS1115_H__

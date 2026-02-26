@@ -16,6 +16,9 @@ static struct {
 
 static char* TAG = "SENSORS";
 
+#define HUMIDITY_GAIN   -63.37
+#define HUMIDITY_OFFSET 164.76
+
 /*********************/
 /* Public Interfaces */
 
@@ -81,5 +84,11 @@ void sensors_update(SensorData* data) {
   data->bme.airTemp  = bmedata.temperature;
 
   //data->adcValueMv = ads1115_readRaw(&sensors.ads) * 125.0f / 1000.0f;
-  data->adcValueV = ads11115_readVolts(&sensors.ads);
+  ads1115_setMux(&sensors.ads, ADS1115_MUX_AIN0_GND);
+  vTaskDelay(pdMS_TO_TICKS(30));
+  data->adcLdr = ads1115_readVolts(&sensors.ads);
+
+  ads1115_setMux(&sensors.ads, ADS1115_MUX_AIN1_GND);
+  vTaskDelay(pdMS_TO_TICKS(30));
+  data->adcHumidity = HUMIDITY_GAIN * ads1115_readVolts(&sensors.ads) + HUMIDITY_OFFSET;
 }
