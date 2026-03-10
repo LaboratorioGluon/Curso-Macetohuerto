@@ -1,5 +1,6 @@
 #include <freertos/FreeRTOS.h>
 #include "comms.h"
+#include "esp_log.h"
 #include "pump.h"
 #include "scanneri2c.h"
 #include "sensors.h"
@@ -15,6 +16,7 @@ void app_main() {
   sensorsconfig.bmeDev = sysDevs->bme;
   sensorsconfig.adsDev = sysDevs->ads;
   sensors_init(&sensorsconfig);
+  pump_init(sysDevs->pumpGpio);
 
   SensorData data;
   for (;;) {
@@ -27,7 +29,13 @@ void app_main() {
     //..
 
     comms_send();
-    pump_actuate();
+
+    // Activate the pump if humidity is low.
+    if (data.adcHumidity > 2.0f) {
+      ESP_LOGI("PUMP", "Empezando a regar!");
+      pump_actuate();
+      ESP_LOGI("PUMP", "Terminando de regar!");
+    }
 
     system_sleep();
 

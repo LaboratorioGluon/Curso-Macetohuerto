@@ -1,7 +1,11 @@
 #include "system.h"
 
+#include <driver/gpio.h>
 #include <driver/i2c_master.h>
+
 #include <string.h>
+
+#define PUMP_GPIO_NUM GPIO_NUM_5
 
 #define BME280_ADDR  0x76
 #define ADS1115_ADDR 0x48
@@ -55,6 +59,16 @@ SystemDevs* system_init(void) {
 
   devConfig.device_address = ADS1115_ADDR;
   ESP_ERROR_CHECK(i2c_master_bus_add_device(busHandle, &devConfig, &globalDevs.ads));
+
+  gpio_config_t pumpGpio = {0};
+  pumpGpio.mode          = GPIO_MODE_OUTPUT;
+  pumpGpio.pin_bit_mask  = (1 << PUMP_GPIO_NUM);
+  pumpGpio.pull_down_en  = GPIO_PULLDOWN_DISABLE;
+  pumpGpio.pull_up_en    = GPIO_PULLUP_DISABLE;
+  pumpGpio.intr_type     = GPIO_INTR_DISABLE;
+  ESP_ERROR_CHECK(gpio_config(&pumpGpio));
+
+  globalDevs.pumpGpio = PUMP_GPIO_NUM;
 
   return &globalDevs;
 }

@@ -90,5 +90,8 @@ void sensors_update(SensorData* data) {
 
   ads1115_setMux(&sensors.ads, ADS1115_MUX_AIN1_GND);
   vTaskDelay(pdMS_TO_TICKS(30));
-  data->adcHumidity = HUMIDITY_GAIN * ads1115_readVolts(&sensors.ads) + HUMIDITY_OFFSET;
+  //data->adcHumidity = HUMIDITY_GAIN * ads1115_readVolts(&sensors.ads) + HUMIDITY_OFFSET;
+
+  // Recalibrate when the project is finished and installed.
+  data->adcHumidity = ads1115_readVolts(&sensors.ads);
 }
