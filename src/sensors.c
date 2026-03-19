@@ -5,6 +5,7 @@
 #include "ads1115.h"
 #include "bme280.h"
 #include "hal/ads1115_hals.h"
+#include "hx711.h"
 
 /*********************/
 /* Private Variables */
@@ -12,12 +13,20 @@
 static struct {
   struct bme280_dev bmedev;
   Ads1115 ads;
+  Hx711 hx711;
 } sensors;
 
 static char* TAG = "SENSORS";
 
 #define HUMIDITY_GAIN   -63.37
 #define HUMIDITY_OFFSET 164.76
+
+#define HX711_NUM_SAMPLES 10
+
+#define CALIBRATION_HX711_SAMPLES 100U
+#define CALIBRATION_HX711_OFFSET  (276709)
+#define HX711_GAIN                (952.35955e-6)
+#define HX711_OFFSET              (-37.4651e-3)
 
 /*********************/
 /* Public Interfaces */
@@ -73,6 +82,13 @@ void sensors_init(SensorConfig* config) {
   };
 
   ads1115_config(&sensors.ads, &adsConf);
+
+  sensors.hx711.ch       = HX711_CHA_128;
+  sensors.hx711.gpioSck  = config->hx711Sck;
+  sensors.hx711.gpioData = config->hx711Data;
+  hx711_init(&sensors.hx711);
+  hx711_setTare(&sensors.hx711, CALIBRATION_HX711_OFFSET);
+  hx711_setScaleOffset(&sensors.hx711, HX711_GAIN, HX711_OFFSET);
 }
 
 void sensors_update(SensorData* data) {
@@ -94,4 +110,22 @@ void sensors_update(SensorData* data) {
 
   // Recalibrate when the project is finished and installed.
   data->adcHumidity = ads1115_readVolts(&sensors.ads);
+
+  float grams    = 0.0f;
+  float sumGrams = 0.0f;
+  for (uint32_t i = 0; i < HX711_NUM_SAMPLES; i++) {
+    hx711_readValueScaled(&sensors.hx711, &grams);
+    sumGrams += grams;
+  }
+  data->grams = sumGrams / HX711_NUM_SAMPLES;
+}
+
+void sensors_calibrate() {
+  int32_t value     = 0;
+  int32_t sumValues = 0;
+  for (uint32_t i = 0; i < CALIBRATION_HX711_SAMPLES; i++) {
+    hx711_readValueRaw(&sensors.hx711, &value);
+    sumValues += value;
+  }
+  ESP_LOGE("CALIBRATION", "HX711 mean value: %d", sumValues / CALIBRATION_HX711_SAMPLES);
 }

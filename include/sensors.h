@@ -9,6 +9,8 @@
 typedef struct {
   i2c_master_dev_handle_t bmeDev;
   i2c_master_dev_handle_t adsDev;
+  gpio_num_t hx711Sck;
+  gpio_num_t hx711Data;
 } SensorConfig;
 
 /**
@@ -22,6 +24,7 @@ typedef struct {
   } bme;
   float adcLdr;
   float adcHumidity;
+  float grams;
 } SensorData;
 
 /**
@@ -35,5 +38,7 @@ void sensors_init(SensorConfig* config);
  * @param data Pointer where to store the data.
  */
 void sensors_update(SensorData* data);
+
+void sensors_calibrate();
 
 #endif  //SENSORS_C__

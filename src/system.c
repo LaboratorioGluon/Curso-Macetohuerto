@@ -7,6 +7,9 @@
 
 #define PUMP_GPIO_NUM GPIO_NUM_5
 
+#define HX711_GPIO_SCK  GPIO_NUM_21
+#define HX711_GPIO_DATA GPIO_NUM_20
+
 #define BME280_ADDR  0x76
 #define ADS1115_ADDR 0x48
 
@@ -68,7 +71,23 @@ SystemDevs* system_init(void) {
   pumpGpio.intr_type     = GPIO_INTR_DISABLE;
   ESP_ERROR_CHECK(gpio_config(&pumpGpio));
 
-  globalDevs.pumpGpio = PUMP_GPIO_NUM;
+  gpio_config_t hx711 = {0};
+  hx711.mode          = GPIO_MODE_OUTPUT;
+  hx711.pin_bit_mask  = (1 << HX711_GPIO_SCK);
+  hx711.pull_down_en  = GPIO_PULLDOWN_DISABLE;
+  hx711.pull_up_en    = GPIO_PULLUP_DISABLE;
+  hx711.intr_type     = GPIO_INTR_DISABLE;
+
+  ESP_ERROR_CHECK(gpio_config(&hx711));
+
+  hx711.mode         = GPIO_MODE_INPUT;
+  hx711.pin_bit_mask = (1 << HX711_GPIO_DATA);
+
+  ESP_ERROR_CHECK(gpio_config(&hx711));
+
+  globalDevs.pumpGpio  = PUMP_GPIO_NUM;
+  globalDevs.hx711Data = HX711_GPIO_DATA;
+  globalDevs.hx711Sck  = HX711_GPIO_SCK;
 
   return &globalDevs;
 }

@@ -11,6 +11,8 @@ typedef struct {
   i2c_master_dev_handle_t bme;
   i2c_master_dev_handle_t ads;
   gpio_num_t pumpGpio;
+  gpio_num_t hx711Sck;
+  gpio_num_t hx711Data;
 } SystemDevs;
 
 /**
