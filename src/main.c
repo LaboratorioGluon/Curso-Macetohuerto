@@ -1,6 +1,8 @@
 #include <freertos/FreeRTOS.h>
+#include <socket.h>
 #include "comms.h"
 #include "esp_log.h"
+#include "esp_timer.h"
 #include "hx711.h"
 #include "pump.h"
 #include "scanneri2c.h"
@@ -23,12 +25,14 @@ void app_main() {
 
   sensors_init(&sensorsconfig);
   pump_init(sysDevs->pumpGpio);
+  comms_init();
 
 #if CALIBRATION
   sensors_calibrate();
 #endif
 
   SensorData data;
+  int64_t start = esp_timer_get_time();
   for (;;) {
 
     printf("Pre sensor_update\n");
@@ -36,10 +40,11 @@ void app_main() {
 
     //printf("Read data: %.2f, %.2f, %.2f", data.bme.pressure, data.bme.humidty, data.bme.airTemp);
     printf("ADC: %2.4f | %2.4f | %.2f\n", data.adcLdr, data.adcHumidity, data.grams);
-
     //..
 
-    comms_send();
+    if (esp_timer_get_time() - start > 10000000) {
+      comms_send(&data);
+    }
 
     // Activate the pump if humidity is low.
     /*if (data.adcHumidity > 2.0f) {
