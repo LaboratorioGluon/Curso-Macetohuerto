@@ -43,6 +43,7 @@ void app_main() {
     //..
 
     if (esp_timer_get_time() - start > 10000000) {
+      start = esp_timer_get_time();
       comms_send(&data);
     }
 
