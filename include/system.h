@@ -23,9 +23,9 @@ typedef struct {
 SystemDevs* system_init(void);
 
 /**
- * @brief TODO
- * @param  TODO
+ * @brief Deep sleep the system.
+ * @param  seconds Seconds to sleep
  */
-void system_sleep(void);
+void system_sleep(uint32_t seconds);
 
 #endif  //SYSTEM_H__

@@ -2,6 +2,7 @@
 
 #include <driver/gpio.h>
 #include <driver/i2c_master.h>
+#include <esp_sleep.h>
 
 #include <string.h>
 
@@ -12,6 +13,8 @@
 
 #define BME280_ADDR  0x76
 #define ADS1115_ADDR 0x48
+
+#define MICROSECS_TO_SECS 1000000
 
 /*********************/
 /* Private Variables */
@@ -92,4 +95,8 @@ SystemDevs* system_init(void) {
   return &globalDevs;
 }
 
-void system_sleep(void) {}
+void system_sleep(uint32_t seconds) {
+  ESP_ERROR_CHECK(esp_sleep_enable_timer_wakeup(seconds * MICROSECS_TO_SECS));
+
+  esp_deep_sleep_start();
+}

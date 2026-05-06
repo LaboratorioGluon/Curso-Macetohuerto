@@ -9,50 +9,10 @@
 #include "sensors.h"
 #include "system.h"
 
-#define CALIBRATION (1U)
-
-TaskHandle_t hTaskSensors;
-TaskHandle_t hTaskComms;
-QueueHandle_t hqSensorToComms;
-SemaphoreHandle_t hSempahore;
-
-typedef struct {
-  uint8_t counter;
-  int8_t decounter;
-} SensorToCommsData;
-
-void taskSensor(void* arg) {
-  SensorToCommsData data;
-  data.counter   = 0;
-  data.decounter = 100;
-  printf("[SENSORS] Initializing sensors\n");
-  xSemaphoreTake(hSempahore, portMAX_DELAY);
-  while (1) {
-    printf("[SENSORS] Reading sensors\n");
-    data.counter++;
-    data.decounter--;
-    xQueueSend(hqSensorToComms, &data, 10);
-    vTaskDelay(pdMS_TO_TICKS(1000));
-  }
-}
-
-void taskComms(void* arg) {
-  printf("[COMMS] Initializing comms\n");
-  SensorToCommsData commData;
-  while (1) {
-    xQueueReceive(hqSensorToComms, &commData, portMAX_DELAY);
-    printf("[COMMS] Sending data...\n");
-  }
-}
+#define CALIBRATION (0U)
 
 void app_main() {
 
-  hqSensorToComms = xQueueCreate(1, sizeof(SensorToCommsData));
-  hSempahore      = xSemaphoreCreateBinary();
-
-  xTaskCreate(taskSensor, "TaskSensors", 4096, NULL, 1, &hTaskSensors);
-  xTaskCreate(taskComms, "TaskComms", 4096, NULL, 1, &hTaskComms);
-  return;
   vTaskDelay(pdMS_TO_TICKS(3000));
 
   SystemDevs* sysDevs = system_init();
@@ -82,10 +42,7 @@ void app_main() {
     printf("ADC: %2.4f | %2.4f | %.2f\n", data.adcLdr, data.adcHumidity, data.grams);
     //..
 
-    if (esp_timer_get_time() - start > 10000000) {
-      start = esp_timer_get_time();
-      comms_send(&data);
-    }
+    comms_send(&data);
 
     // Activate the pump if humidity is low.
     /*if (data.adcHumidity > 2.0f) {
@@ -94,8 +51,7 @@ void app_main() {
       ESP_LOGI("PUMP", "Terminando de regar!");
     }*/
 
-    system_sleep();
-
-    vTaskDelay(pdMS_TO_TICKS(200));
+    // Deep sleep we never return.
+    system_sleep(10);
   }
 }
