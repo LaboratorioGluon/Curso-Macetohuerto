@@ -11,47 +11,80 @@
 
 #define CALIBRATION (0U)
 
-void app_main() {
+typedef enum { STATE_NORMAL = 0, STATE_DEBUG } State;
 
-  vTaskDelay(pdMS_TO_TICKS(3000));
+State currentState = STATE_DEBUG;
 
-  SystemDevs* sysDevs = system_init();
+void app_main()
+{
 
-  SensorConfig sensorsconfig;
-  sensorsconfig.bmeDev    = sysDevs->bme;
-  sensorsconfig.adsDev    = sysDevs->ads;
-  sensorsconfig.hx711Data = sysDevs->hx711Data;
-  sensorsconfig.hx711Sck  = sysDevs->hx711Sck;
+    vTaskDelay(pdMS_TO_TICKS(3000));
 
-  sensors_init(&sensorsconfig);
-  pump_init(sysDevs->pumpGpio);
-  comms_init();
+    SystemDevs* sysDevs = system_init();
+
+    SensorConfig sensorsconfig;
+    sensorsconfig.bmeDev    = sysDevs->bme;
+    sensorsconfig.adsDev    = sysDevs->ads;
+    sensorsconfig.hx711Data = sysDevs->hx711Data;
+    sensorsconfig.hx711Sck  = sysDevs->hx711Sck;
+
+    sensors_init(&sensorsconfig);
+    pump_init(sysDevs->pumpGpio);
+    comms_init();
+
+    if (currentState == STATE_DEBUG)
+    {
+        comms_udpInit();
+    }
 
 #if CALIBRATION
-  sensors_calibrate();
+    sensors_calibrate();
 #endif
 
-  SensorData data;
-  int64_t start = esp_timer_get_time();
-  for (;;) {
+    SensorData data;
+    int64_t start = esp_timer_get_time();
+    for (;;)
+    {
 
-    printf("Pre sensor_update\n");
-    sensors_update(&data);
+        sensors_update(&data);
 
-    //printf("Read data: %.2f, %.2f, %.2f", data.bme.pressure, data.bme.humidty, data.bme.airTemp);
-    printf("ADC: %2.4f | %2.4f | %.2f\n", data.adcLdr, data.adcHumidity, data.grams);
-    //..
+        if (currentState == STATE_DEBUG)
+        {
+            uint8_t buf[100] = "";
+            /*printf("===DEBUG===\n");
+      printf("Supply:\n - vSolar: %.3f\n - vBatt: %.3f\n", data.vSolar, data.vBatt);
+      printf("Air:\n - Temp: %.3f\n - Humidity: %.3f\n - Pressure: %.3f\n", data.bme.airTemp,
+             data.bme.humidty, data.bme.pressure);
+      printf("Otros:\n - LDR: %.2f\n - Soil Humidity: %.2f\n - Weight: %.2f\n", data.adcLdr,
+             data.adcHumidity, data.grams);*/
 
-    comms_send(&data);
+            /*sprintf(buf, "Supply:\n - vSolar: %.3f\n - vBatt: %.3f\n", data.vSolar, data.vBatt);
+      comms_udpSend(buf, strlen(buf));
+      sprintf(buf, "Air:\n - Temp: %.3f\n - Humidity: %.3f\n - Pressure: %.3f\n", data.bme.airTemp,
+              data.bme.humidty, data.bme.pressure);
+      comms_udpSend(buf, strlen(buf));
+      sprintf(buf, "Otros:\n - LDR: %.2f\n - Soil Humidity: %.2f\n - Weight: %.2f\n", data.adcLdr,
+              data.adcHumidity, data.grams);
+      comms_udpSend(buf, strlen(buf));*/
 
-    // Activate the pump if humidity is low.
-    /*if (data.adcHumidity > 2.0f) {
+            comms_getCommand();
+            vTaskDelay(pdMS_TO_TICKS(200));
+        }
+        else
+        {
+            comms_send(&data);
+            vTaskDelay(pdMS_TO_TICKS(1000));
+
+            system_sleep(10);
+        }
+
+        // Activate the pump if humidity is low.
+        /*if (data.adcHumidity > 2.0f) {
       ESP_LOGI("PUMP", "Empezando a regar!");
       pump_actuate();
       ESP_LOGI("PUMP", "Terminando de regar!");
     }*/
 
-    // Deep sleep we never return.
-    system_sleep(10);
-  }
+        // Deep sleep we never return.
+    }
 }

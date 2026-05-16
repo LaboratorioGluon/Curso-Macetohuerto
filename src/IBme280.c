@@ -5,7 +5,7 @@
 
 #include <rom/ets_sys.h>
 
-#define SEND_BUF_SIZE 10
+#define SEND_BUF_SIZE   10
 #define SEND_TIMEOUT_MS 100
 
 // Common send buffer to store temporal
@@ -23,7 +23,14 @@ BME280_INTF_RET_TYPE ibme280_i2c_read(uint8_t reg_addr, uint8_t* reg_data, uint3
   // 1 - Write + Register to be read.
   // 2 - Read the wanted length.
   sendBuf[0] = reg_addr;
-  return i2c_master_transmit_receive(i2cDev, sendBuf, 1, reg_data, len, SEND_TIMEOUT_MS);
+  BME280_INTF_RET_TYPE ret =
+      i2c_master_transmit_receive(i2cDev, sendBuf, 1, reg_data, len, SEND_TIMEOUT_MS);
+  /*printf("\n====BME_READ_DEBUG====\nData for %d: ", reg_addr);
+  for (uint8_t i = 0; i < len; i++) {
+    printf("0x%02x ", reg_data[i]);
+  }
+  printf("\n");*/
+  return ret;
 }
 
 BME280_INTF_RET_TYPE ibme280_i2c_write(uint8_t reg_addr, const uint8_t* reg_data, uint32_t len,

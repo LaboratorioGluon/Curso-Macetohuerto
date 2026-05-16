@@ -3,28 +3,52 @@
 
 #include <driver/i2c_master.h>
 
+#include "ads1115.h"
+#include "bme280.h"
+#include "hx711.h"
+
 /**
  * @brief Configuration required to initialize the sensors.
  */
 typedef struct {
-  i2c_master_dev_handle_t bmeDev;
-  i2c_master_dev_handle_t adsDev;
-  gpio_num_t hx711Sck;
-  gpio_num_t hx711Data;
+    i2c_master_dev_handle_t bmeDev;
+    i2c_master_dev_handle_t adsDev;
+    gpio_num_t hx711Sck;
+    gpio_num_t hx711Data;
 } SensorConfig;
+
+typedef struct {
+    struct {
+        float tare;
+        float gain;
+        float offset;
+    } weight;
+    struct {
+        uint16_t HumMin;
+        uint16_t HumMax;
+    } soil;
+} SensorCalibration;
+
+typedef struct {
+    struct bme280_dev bmedev;
+    Ads1115 ads;
+    Hx711 hx711;
+} SensorHandlers;
 
 /**
  * @brief Stores the read data from the sensors.
  */
 typedef struct {
-  struct {
-    float pressure;
-    float humidty;
-    float airTemp;
-  } bme;
-  float adcLdr;
-  float adcHumidity;
-  float grams;
+    struct {
+        float pressure;
+        float humidty;
+        float airTemp;
+    } bme;
+    float adcLdr;
+    float adcHumidity;
+    float grams;
+    float vSolar;
+    float vBatt;
 } SensorData;
 
 /**
@@ -40,5 +64,7 @@ void sensors_init(SensorConfig* config);
 void sensors_update(SensorData* data);
 
 void sensors_calibrate();
+
+SensorHandlers* sensors_getSensors();
 
 #endif  //SENSORS_C__
