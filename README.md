@@ -29,3 +29,26 @@ Por lo tanto, en este curso vamos a aprender a:
 
 ![Diseño a del MacetoHuerto](/doc/esquemaCompleto.png)
 
+## Sensores
+
+### Peso: HX711 + Galga de 1Kg
+#### Calibración
+
+Para la calibración del hx711 hacen falta dos puntos, al ser un sensor líneal vamos a calibrar una recta. Es decir, este método no funcionaría
+con sensores no lineales. 
+
+Lo primero es hacer el `tare` o poner a cero y luego hacer la regresión lineal. La regresión líneal tiene la forma `y-y0 = (x-x0) · (y1-y0)/(x1-x0)`. Los puntos `(x0, y0)`, `(x1, y1)` son los datos de calibración que tenemos nosotros. En este paso es importante saber que vamos a poner en la `x` y qué en la `y`. Nosotros vamos a tener la entrada del hx711 y de esos datos queremos sacar el peso en gramos, por lo tanto nuestra `x` será la salida en bruto del hx711 y la variable dependiente `y` el peso real que hay en la báscula.
+
+![Diseño a del MacetoHuerto](/doc/regresionLineal.png)
+
+Por lo tanto el proceso será:
+
+1. Dejas la báscula vacía
+2. Apuntas el dato y lo guardas como "tara" usando la función `hx711_setTare`.
+3. Pones un peso pequeño y guardas el dato. Por ejemplo: peso 100g y el hx711 me da 40000, sería (40000, 100)
+3. Lo mismo con un peso grande. (250000, 1000)
+4. Calculamos la regresión lineal usando la formula de arriba.
+    1. La pendiente es: `p = (y1-y0)/(x1-x0)` = 900/210000 = 4.29e-3
+    2. Despejamos la y: `y =  (x-x0)·p + y0 = x·p + y0 - x0·p = x·4.29e-3 - 71.6`.
+    3. Lo que va con la x es la _gain_ (4.29e-3) y el resto es el offset (-71.6)
+5. Guardamos los datos de calibración del hx711: `hx711_setScaleOffset(dev, 4.29e-3, -71.6);`
